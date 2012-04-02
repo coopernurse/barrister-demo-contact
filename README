@@ -1,0 +1,10 @@
+Demo Barrister Web Service
+--------------------------
+
+   IDL file: contact.idl
+   Parsed JSON IDL: contact.json
+   Generated HTML docs: contact.html
+
+View the language sub-directories for clients and server implementations of this IDL.
+
+For more information on Barrister, please visit: http://barrister.bitmechanic.com/
