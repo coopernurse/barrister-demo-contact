@@ -1,0 +1,9 @@
+For notes on this demo, read the tutorial at:
+
+    https://github.com/coopernurse/barrister-java
+
+To run the demo in jetty:
+
+    mvn package jetty:run
+
+
