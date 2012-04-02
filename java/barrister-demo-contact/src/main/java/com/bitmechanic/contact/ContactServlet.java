@@ -4,6 +4,8 @@ import com.bitmechanic.barrister.Contract;
 import com.bitmechanic.barrister.Server;
 import com.bitmechanic.barrister.JacksonSerializer;
 
+import com.bitmechanic.contact.generated.ContactService;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
