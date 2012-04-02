@@ -1,8 +1,8 @@
 # Barrister Contact Demo - Python Impl
 
 In this tutorial we'll use the Python Barrister bindings to write a simple contact management service.
-The [examples directory](https://github.com/coopernurse/barrister/blob/master/examples) contains the
-resulting IDL, client, and server.  Please refer to these files as we go along:
+The parent directory contains the plain IDL file and its JSON representation.
+Please refer to these files as we go along:
 
 * `contact.idl` - IDL file
 * `server.py` - Implementation of the IDL using Python and [bottle](http://bottlepy.org/)
@@ -56,7 +56,7 @@ If you want the HTML documentation for the interface, simply add the `-d` option
 
 ### Understanding the implementation
 
-Take a moment to read the `contact_client.py` and `contact_server.py` code.  The comments in the code
+Take a moment to read the `client.py` and `server.py` code.  The comments in the code
 will hopefully clarify how things work.  Rather than repeat those comments here, we'll focus on the 
 less obvious bits.
 
@@ -65,7 +65,7 @@ less obvious bits.
 One of Barrister's selling points is that it helps ensure that requests and responses match the types
 defined in the IDL so that you don't have to manually deal with that validation in your application.
 
-You can see an example of this in action near the bottom of `contact_client.py`
+You can see an example of this in action near the bottom of `client.py`
 
 ```python
     try:
