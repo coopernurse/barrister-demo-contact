@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+        <title>Barrister - Contact Demo JS Client</title>
+        <script type="text/javascript" src="jquery-1.6.4.min.js"></script>
+        <script type="text/javascript" src="json2.min.js"></script>
+        <script type="text/javascript" src="barrister.browser.min.js"></script>
+        <style>
+            body { font-family: Verdana; }
+        </style>
+        <script type="text/javascript">
+
+            var contactIdCounter = 0;
+            function newContact(o) {
+                o.contactId = o.contactId || (contactIdCounter++).toString();
+                o.userId    = o.userId    || "user1";
+                o.firstName = o.firstName || "Bob";
+                o.lastName  = o.lastName  || "Smith";
+                o.email     = o.email     || o.firstName+"@example.com";
+                o.phones    = o.phones    || [];
+            
+                return o;
+            }
+
+            function appendResult(desc, result) {
+                var s = JSON.stringify(result).replace("},{", "},\n{");
+                var html = "<tr><td>" + desc + "</td><td><pre>" + s + "</pre></td></tr>";
+                jQuery(html).appendTo("#results");
+            }
+
+            function runDemo(client) {
+                var service = client.proxy("ContactService");
+
+                // each of these 3 top level service calls will execute
+                // concurrently, so the results may vary if you reload the page
+
+                service.put(newContact({firstName: "Sam"}), function(err, contactId) {
+                    appendResult("put contact", contactId);
+
+                    service.getAll("user1", function(err, contacts) {
+                        appendResult("get all contacts for user1", contacts);
+                    });
+                });
+
+                service.put(newContact({firstName: "Joe"}), function(err, contactId) {
+                    appendResult("put contact", contactId);
+
+                    service.delete(contactId, "user1", function(err, deleted) {
+                        appendResult("delete contact with id: " + contactId, deleted);
+                    });
+                });
+
+                service.put(newContact({phones: [ { "foo":"bar" } ]}), function(err, contactId) {
+                    appendResult("put invalid contact. result is error.", err);
+                });
+
+                service.delete(99, "user1", function(err, deleted) {
+                    appendResult("call delete with int instead of string", err);
+                });
+
+                service.delete("1", function(err, deleted) {
+                    appendResult("call delete with wrong arg length", err);
+                });
+            }
+
+            jQuery(document).ready(function() {
+                var client = Barrister.httpClient("/contact");
+                client.enableTrace();
+                client.loadContract(function(err) {
+                    if (err) { 
+                        alert("Unable to load contract: " + err);
+                    }
+                    else {
+                        runDemo(client);
+                    }
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <h1>Barrister - Contact Demo JS Client</h1>
+        
+        <table id="results" border="1">
+            <tr><th>description</th><th>result</th></tr>
+        </table>            
+    </body>
+</html>

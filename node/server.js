@@ -172,4 +172,8 @@ app.post('/contact', function(req, res){
         }
     });
 });
+
+// for serving the browser JS demo
+app.use(express['static'](__dirname + '/static'));
+
 app.listen(3000);
