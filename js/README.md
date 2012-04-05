@@ -1,10 +1,12 @@
-# Barrister Contact Demo - Node.js Impl
+# Barrister Contact Demo - JS Impl
 
 To install Barrister for node.js, see: 
 https://github.com/coopernurse/barrister-js
 
-In this tutorial we'll use the Node.js Barrister bindings to write a simple contact management 
-service. The **parent directory** contains the plain IDL file and its JSON representation.
+In this tutorial we'll use the barrister-js bindings to write a Node.js client and server and a 
+browser based client for a fictitous Contact Service.
+
+The **parent directory** contains the plain IDL file and its JSON representation.
 Please refer to these files as we go along:
 
 * `../contact.idl` - IDL file
@@ -12,6 +14,7 @@ Please refer to these files as we go along:
 * `client.js` - Client program that demonstrates how to call the service, trap errors, and 
   use batches.  Uses [Step](https://github.com/creationix/step) to ensure the requests are
   chained in a synchronous manner.
+* `static/client.html` - Browser based client that uses the same API as client.js, just packaged a bit differently so it can be loaded in the browser.
 
 ### Running the example
 
@@ -20,6 +23,11 @@ From the directory of this README.md, try:
     npm install express step
     node server.py &
     node client.py   (should get a bunch of output)
+    
+    Then in your browser, try loading:
+    http://localhost:3000/client.html
+    
+    Back at the terminal:
     fg      (to foreground the server)
     ctrl-c  (to quit the server)
 
@@ -66,7 +74,8 @@ less obvious bits.
 ### Creating a Client
 
 When consuming a Barrister service from Node, you'll create a `Client` and load the contract.  
-Here's how that would look without using step:
+
+Here's how that would look in Node.js:
 
     var barrister = require('barrister');
     var client = barrister.httpClient("http://localhost:3000/contact");
@@ -77,6 +86,42 @@ Here's how that would look without using step:
         // contract successfully loaded -- you can now use client to make requests
     });
     
+And in a browser:
+
+    <!-- used to make the POST request, but that can be overridden (see below) -->
+    <script type="text/javascript" src="jquery-1.6.4.min.js"></script>
+    
+    <!-- For browsers that don't include the JSON global object
+         See: https://github.com/douglascrockford/JSON-js -->
+    <script type="text/javascript" src="json2.min.js"></script>
+    
+    <!-- Barrister itself.  A non-minified version is also available -->
+    <script type="text/javascript" src="barrister.browser.min.js"></script>
+    
+    <script type="text/javascript">
+
+      jQuery(document).ready(function() {
+        var client = Barrister.httpClient("/contact");
+        client.enableTrace();
+        client.loadContract(function(err) {
+            if (err) { 
+                alert("Unable to load contract: " + err);
+            }
+            else {
+                // contract successfully loaded -- you can now use client to make requests
+            }
+        });
+      });
+      
+    </script>
+    
+A few notes about the browser implementation:
+
+* jQuery is used to make the POST request inside Barrister, but it can be swapped out by 
+  passing a function to `Barrister.httpClient()` instead of a string. See the 
+  [src/browser_footer.js](https://github.com/coopernurse/barrister-js/blob/master/src/browser_footer.js)
+  file for the default implementation and notes
+   
 ### Making requests
 
 To invoke a function, create a proxy object for the interface you wish to call.  The proxy
