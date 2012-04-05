@@ -193,6 +193,40 @@ Contract.prototype.validate = function(namePrefix, expected, isArray, val) {
     }
 };
 
+Contract.prototype.validateReq = function(req) {
+    // special case for IDL request
+    if (req.method === "barrister-idl") {
+        return null;
+    }
+
+    var func = this.functions[req.method];
+    if (!func) {
+        return errResp(req.id, -32601, "Method not found: " + req.method);
+    }
+
+    var paramLen = req.params ? req.params.length : 0;
+    var i, valid, msg;
+
+    if (paramLen !== func.params.length) {
+        msg = "Param length: " + paramLen + " != expected length: " + func.params.length;
+        return errResp(req.id, -32602, msg);
+    }
+    
+    for (i = 0; i < func.params.length; i++) {
+        valid = this.validate(func.params[i].name, 
+                              func.params[i], 
+                              func.params[i].is_array,
+                              req.params[i]);
+        if (!valid[0]) {
+            msg = "Invalid request param["+i+"]: " + valid[1];
+            return errResp(req.id, -32602, msg);
+        }
+    }
+
+    // valid
+    return null;
+};
+
 Contract.prototype.getAllStructFields = function(fields, struct) {
     if (struct.fields.length > 0) {
         fields = fields.concat(struct.fields);
@@ -233,32 +267,57 @@ Batch.prototype.functionProxy = function(method) {
 
 // Sends the batch to the server
 //
-// callback will be passed two parameters:
-//   errors  - Array of errors - null if no errors occurred
-//   results - Array of all successful calls
+// The callback will be passed two parameters:
 //
-// errors is array of objects with keys:
-//   method - interface name + "." + function (e.g. "ContactService.put")
-//   params - parameters passed to that function for this request
-//   error  - error object (keys: code, message, data) 
+// * `errors`  - Array of errors - null if no errors occurred
+// * `results` - Array of all successful calls
+//
+// errors, if not null, is an array of objects with keys:
+// 
+// * `method` - interface name + "." + function (e.g. "ContactService.put")
+// *  `params` - parameters passed to that function for this request
+// *  `error`  - error object (keys: code, message, data) 
 //
 // results is array of objects with keys:
-//   method - interface name + "." + function (e.g. "ContactService.put")
-//   params - parameters passed to that function for this request
-//   result - return value for that request. type is function specific.
 //
-// a given request will only appear in one of the two arrays, not both
-// results will be ordered in the batch call order
+// *  `method` - interface name + "." + function (e.g. "ContactService.put")
+// *  `params` - parameters passed to that function for this request
+// *  `result` - return value for that request. type is function specific.
+//
+// A given request will only appear in one of the two arrays, not both
+// results will be ordered in the batch call order.
 //
 Batch.prototype.send = function(callback) {
     var me = this;
-    var reqList = me.reqList;
+
+    var reqList = [];
+    var errors  = [];
+    var i, r, errObj;
+    for (i = 0; i < me.reqList.length; i++) {
+        r = me.reqList[i];
+        if (me.client.validateRequest) {
+            errObj = me.client.contract.validateReq(r);
+            if (errObj) {
+                errors.push(errObj);
+            }
+            else {
+                reqList.push(r);
+            }
+        }
+        else {
+            reqList.push(r);
+        }
+    }
+
+    if (reqList.length === 0) {
+        callback(errors, []);
+        return;
+    }
+
     me.client._send(reqList, function(resp) {
         if (resp !== null && resp !== undefined && resp instanceof Array) {
-
             // reorder results to match the order of the requests,
             // as server may return them in a different order
-            var errors = [ ];
             var results = [ ];
             var idToResp = { };
             var i, r, msg;
@@ -312,6 +371,7 @@ Batch.prototype.request = function(method, params) {
 function Client(transport) {
     this.transport = transport;
     this.trace = null;
+    this.validateRequest = true;
 }
 
 Client.prototype.loadContract = function(callback) {
@@ -391,6 +451,14 @@ Client.prototype.functionProxy = function(method) {
 Client.prototype.request = function(method, params, callback) {
     var me  = this;
     var req = makeRequest(method, params);
+
+    if (me.validateRequest && me.contract) {
+        var err = me.contract.validateReq(req);
+        if (err) {
+            callback(err.error, null);
+            return;
+        }
+    }
 
     me._send(req, function(resp) {
         if (resp.error) {
