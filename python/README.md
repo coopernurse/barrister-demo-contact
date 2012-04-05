@@ -4,7 +4,7 @@ In this tutorial we'll use the Python Barrister bindings to write a simple conta
 The parent directory contains the plain IDL file and its JSON representation.
 Please refer to these files as we go along:
 
-* `contact.idl` - IDL file
+* `../contact.idl` - IDL file
 * `server.py` - Implementation of the IDL using Python and [bottle](http://bottlepy.org/)
 * `client.py` - Client program that demonstrates how to call the service, trap errors, and 
   use batches
@@ -43,6 +43,7 @@ has an array of `Phone` objects:
       lastName  string
       email     string
       phones    []Phone
+      address   Address   [optional]
     }    
 
 I've checked the generated `contact.json` into git, but this is an artifact of running the `barrister`
