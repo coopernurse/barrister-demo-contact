@@ -18,11 +18,18 @@ Please refer to these files as we go along:
 
 ### Running the example
 
-From the directory of this README.md, try:
-
+    # clone the repo
+    git clone git://github.com/coopernurse/barrister-demo-contact.git
+    
+    # install dependencies
+    cd barrister-demo-contact/js
     npm install express step
+    
+    # start server in background
     node server.py &
-    node client.py   (should get a bunch of output)
+    
+    # run the client - should get a bunch of output 
+    node client.py
     
     Then in your browser, try loading:
     http://localhost:3000/client.html
