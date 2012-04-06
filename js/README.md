@@ -204,7 +204,7 @@ Barrister allows you to batch multiple requests in a single call, which can spee
 requests are small and the HTTP/network overhead becomes noticeable.  To use a batch:
 
     // create a batch from the client
-    var batch = client.batch();
+    var batch = client.startBatch();
     
     // create a proxy from the batch
     var contactService = batch.proxy("ContactService");

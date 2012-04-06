@@ -400,7 +400,7 @@ Client.prototype.disableTrace = function() {
     this.trace = null;
 };
 
-Client.prototype.batch = function() {
+Client.prototype.startBatch = function() {
     return new Batch(this);
 };
 

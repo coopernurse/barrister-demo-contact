@@ -114,7 +114,7 @@ step(
         if (err) { throw JSON.stringify(err); }
 
         // create a batch proxy for our client
-        var batch = this.client.batch();
+        var batch = this.client.startBatch();
         var batchContactService = batch.proxy("ContactService");
 
         var i;
