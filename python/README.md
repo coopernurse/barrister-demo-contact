@@ -61,6 +61,21 @@ Take a moment to read the `client.py` and `server.py` code.  The comments in the
 will hopefully clarify how things work.  Rather than repeat those comments here, we'll focus on the 
 less obvious bits.
 
+### Trace logging
+
+Barrister will optionally log all requests and responses using the standard Python `logging` 
+package.  To enable trace logging, enable the `DEBUG` log level.  This works for clients and
+servers.
+
+    import logging
+    
+    # turn on:
+    logging.basicConfig()
+    logging.getLogger("barrister").setLevel(logging.DEBUG)
+    
+    # turn off:
+    logging.getLogger("barrister").setLevel(logging.INFO)
+
 ### Malformed requests
 
 One of Barrister's selling points is that it helps ensure that requests and responses match the types
