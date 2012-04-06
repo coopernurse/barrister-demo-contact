@@ -36,31 +36,31 @@
                 // concurrently, so the results may vary if you reload the page
 
                 service.put(newContact({firstName: "Sam"}), function(err, contactId) {
-                    appendResult("put contact", contactId);
+                    appendResult("put contact", err || contactId);
 
                     service.getAll("user1", function(err, contacts) {
-                        appendResult("get all contacts for user1", contacts);
+                        appendResult("get all contacts for user1", err || contacts);
                     });
                 });
 
                 service.put(newContact({firstName: "Joe"}), function(err, contactId) {
-                    appendResult("put contact", contactId);
+                    appendResult("put contact", err || contactId);
 
                     service.delete(contactId, "user1", function(err, deleted) {
-                        appendResult("delete contact with id: " + contactId, deleted);
+                        appendResult("delete contact with id: " + contactId, err || deleted);
                     });
                 });
 
                 service.put(newContact({phones: [ { "foo":"bar" } ]}), function(err, contactId) {
-                    appendResult("put invalid contact. result is error.", err);
+                    appendResult("put invalid contact. result is error.", err || err);
                 });
 
                 service.delete(99, "user1", function(err, deleted) {
-                    appendResult("call delete with int instead of string", err);
+                    appendResult("call delete with int instead of string", err || deleted);
                 });
 
                 service.delete("1", function(err, deleted) {
-                    appendResult("call delete with wrong arg length", err);
+                    appendResult("call delete with wrong arg length", err || deleted);
                 });
             }
 

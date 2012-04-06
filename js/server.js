@@ -7,6 +7,10 @@ var ERR_INVALID = 100;
 var ERR_DENIED  = 101;
 var ERR_LIMIT   = 102;
 
+////////////////////////////////////////////
+// Service Impl //
+//////////////////
+
 // Our implementation of the ContactService interface in "contact.idl"
 function ContactService() { 
     this.contacts = {};
@@ -132,6 +136,49 @@ var server = new barrister.Server(idl);
 // second arg is the object that implements the interface
 server.addHandler("ContactService", new ContactService());
 
+// filters let you intercept requests before they hit the
+// target handler.  this lets you implement things like 
+// generic logging, security, etc.
+//
+// if your filter sets context.error in a 'pre' hook, then
+// the request handler will be skipped, and an error will
+// be returned
+
+
+// this filter simply logs the request
+var logger = {
+    // called before handler is invoked
+    pre: function(context, callback) {
+        console.log("pre-handler: props=" + JSON.stringify(context.props) +
+                    " request=" + JSON.stringify(context.request));
+        callback();
+    },
+
+    // called after handler is invoked, but before response is serialized
+    post: function(context, callback) {
+        console.log("post-handler: response=" + JSON.stringify(context.response));        
+        callback();
+    }
+};
+
+// here's an example of how to reject a request in a filter
+var rejecter = {
+    pre: function(context, callback) {
+        if (context.request.method === "ContactService.delete") {
+            if (!context.props.adminUser) {
+                // this error will be returned to the client and the
+                // request.method will not be executed for this request
+                context.error = { code: 3000, message: "Denied: Only admins can delete contacts" };
+            }
+        }
+
+        callback();
+    }
+};
+
+// you can try adding/removeing filters to see how behavior changes
+server.setFilters([rejecter, logger]);
+
 // allow 1MB max per request
 var MAX_POST = 1024*1024;
 
@@ -158,6 +205,14 @@ var app = express.createServer();
 app.post('/contact', function(req, res){
     readRequest(req, res, function(body) {
         if (body) {
+            // props is an object - you could pass the http headers
+            // as the props object, or you could construct your own
+            // application-specific properties as desired
+            //
+            // the props you create here will be passed to your filters
+            // as context.props
+            var props = { adminUser: true };
+
             // server.handleJSON() takes a JSON string, parses it,
             // executes the correct method, and JSON encodes the
             // result.  If internal errors occur, those are trapped
@@ -165,7 +220,7 @@ app.post('/contact', function(req, res){
             // this function doesn't return an "error" on the callback
             // it should always give you a JSON string to return to the
             // client
-            server.handleJSON(body, function(respJson) {
+            server.handleJSON(props, body, function(respJson) {
                 res.contentType('application/json');
                 res.send(respJson);
             });
