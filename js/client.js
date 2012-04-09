@@ -127,24 +127,22 @@ step(
         // batch send() takes the callback
         batch.send(this);
     },
-    function putContactsForAnotherUser(errors, results) {
+    function putContactsForAnotherUser(err, results) {
         var i, o;
-        if (errors) {
-            console.log("Got batch errors: " + JSON.stringify(errors));
-            for (i = 0; i < errors.length; i++) {
-                o = errors[i];
-                console.log("  interface=" + o.iface + " func=" + o.func +
-                            " params=" + o.params + 
-                            " err code=" + o.error.code + " err msg=" + o.error.message);
-            }
+        if (err) {
+            console.log("Got batch error: " + JSON.stringify(err));
             process.exit(1);
         }
-
-        // look at the batch results
-        for (i = 0; i < results.length; i++) {
-            o = results[i];
-            if (o.params[0].contactId !== o.result) {
-                throw "Batch result contactId != input contactId!";
+        else {
+            // look at the batch results
+            for (i = 0; i < results.length; i++) {
+                o = results[i];
+                if (o.error) {
+                    throw "Got error for batch result["+i+"]: " + JSON.stringify(o.error);
+                }
+                else if (o.params[0].contactId !== o.result) {
+                    throw "Batch result contactId != input contactId!";
+                }
             }
         }
 

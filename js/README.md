@@ -216,26 +216,29 @@ requests are small and the HTTP/network overhead becomes noticeable.  To use a b
     contactService.put(contactB);
     
     // send the batch - this takes the callback
-    // errors is null if all requests in batch succeed
+    // err is null if there are no transport errors, but 
+    // results could contain elements with RPC errors
     //
-    // use results[i].result to get the return value from each call
-    batch.send(function(errors, results) {        
+    // results[i].error will be set if the request with offset i had an error
+    // otherwise, results[i].result will be set, which contains the successful
+    // return value of batch request i
+    batch.send(function(err, results) {        
         var i, o;
-        if (errors) {
-            console.log("Got " + errors.length + " error(s)");
-            for (i = 0; i < errors.length; i++) {
-                o = errors[i];
-                console.log(" method=" + o.method + " params=" + o.params + 
-                            " err code=" + o.error.code + " err msg=" + o.error.message);
-            }
+        if (err) {
+            console.log("Error on batch request: " + JSON.stringify(err));
         }
-        
-        if (results) {
-            console.log("Got " + results.length + " success(es)");
+        else {
+            console.log("Got " + results.length + " result(s)");
             for (i = 0; i < results.length; i++) {
                 o = results[i];
-                console.log("  method=" + o.method + " params=" + o.params +
-                            " result=" + o.result);
+                if (o.error) {
+                    console.log(" method=" + o.method + " params=" + o.params + 
+                                " err code=" + o.error.code + " err msg=" + o.error.message);
+                }
+                else {
+                    console.log("  method=" + o.method + " params=" + o.params +
+                                " result=" + o.result);
+                }
             }
         }
     });
