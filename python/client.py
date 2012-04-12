@@ -78,11 +78,13 @@ for i in range(5):
     # Note: nothing is returned at this point
     batch.ContactService.put(contact)
 
-result = batch.send()
-for i in range(result.count):
+results = batch.send()
+for res in results:
+    if res.error:
+        raise res.error
     # each result is unmarshaled here, and a RpcException would be thrown
     # if that particular result in the batch failed
-    maryContactIds.append(result.get(i))
+    maryContactIds.append(res.result)
 
 print "Mary has %d contacts now" % len(maryContactIds)
 

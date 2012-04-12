@@ -139,41 +139,6 @@ The error will be re-thrown on the client side.  See this client code:
 
 In this case we expect the `put()` call to fail with a RpcException
 
-### Batch Requests
-
-Barrister allows you to batch multiple requests in a single call, which can speed things up if your
-requests are small and the HTTP/network overhead becomes noticeable.
-
-The example from the client is here:
-
-```python
-    maryContactIds = []
-    batch = client.start_batch()
-    for i in range(5):
-        email = "email-%s-%d@example.com" % (maryId, i)
-        contact = new_contact(maryId, rand_val(first_names), rand_val(last_names), email)
-        # Note: nothing is returned at this point
-        batch.ContactService.put(contact)
-    
-    result = batch.send()
-    for i in range(result.count):
-        # each result is unmarshaled here, and a RpcException would be thrown
-        # if that particular result in the batch failed
-        maryContactIds.append(result.get(i))
-```
-
-A few items of note:
-
-* `client.start_batch()` creates the `barrister.Batch` object
-* Make calls against the `batch` object as if it were the client.  
-  It has the same proxy interface classes hung off it, but note that none of the calls you make 
-  will return anything, since we haven't sent the request to the server yet.
-* `batch.send()` makes the call to the server and returns a `barrister.BatchResult`
-* Call `result.get(offset)` to fetch each result
-  * If the individual result contains an error, a `RpcException` will be thrown on that `get()` call,
-    which allows you to trap each error individually if desired
-* The order of elements in the `result` object will match the order of your requests
-
 ## More information
 
 ### IDL Syntax
